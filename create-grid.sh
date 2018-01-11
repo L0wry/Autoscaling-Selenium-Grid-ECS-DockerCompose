@@ -1,14 +1,13 @@
-export CLUSTER_NAME=seleniumGrid
+export CLUSTER_NAME=selenium-grid
 export CLUSTER_SIZE=1
-export SSH_SECURITY_GROUP='sg-4156773a'
-export SECURITY_GROUP='sg-4156773a'
-export VPC_ID='vpc-9835d2fe'
-export SUBNET_ID='subnet-03d49a58'
-export AMI_ID='ami-7827b301'
-export INSTANCE_TYPE='m4.large'
+export SECURITY_GROUP='aws security group'
+export VPC_ID='aws vpc'
+export SUBNET_ID='aws vpc subnet id '
+export AMI_ID='ami-7827b301' # aws ami for ECS instance 
+export INSTANCE_TYPE='m4.large' 
 export COMPOSEYML='docker-compose.yml'
 export HUBCONTAINERNAME='hub'
-export INSTANCESTOSCALETO=1
+export INSTANCESTOSCALETO=1  # ec2 Instances to scale too
 
 
 # Clean up existing services: note will error if service does not exist
@@ -18,17 +17,13 @@ aws ecs delete-service --cluster $CLUSTER_NAME --service "ecscompose-service-$CL
 ecs-cli configure --region eu-west-1 --cluster $CLUSTER_NAME 
 
 # create ecs cluster of ec2 instances
-ecs-cli up --capability-iam --size $CLUSTER_SIZE --security-group $SSH_SECURITY_GROUP --vpc $VPC_ID --subnets $SUBNET_ID --image-id $AMI_ID --instance-type $INSTANCE_TYPE --verbose --force
+ecs-cli up --capability-iam --size $CLUSTER_SIZE --security-group $SECURITY_GROUP --vpc $VPC_ID --subnets $SUBNET_ID --image-id $AMI_ID --instance-type $INSTANCE_TYPE --verbose --force
 
 # create task definition for a docker container
 ecs-cli compose --file $COMPOSEYML --project-name $CLUSTER_NAME --verbose create
 
-#clean up existing load balencer
-#aws elb delete-load-balancer --load-balancer-name $CLUSTER_NAME
-
 # create elb & add a dns CNAME for the elb dns
 aws elb create-load-balancer --load-balancer-name "$CLUSTER_NAME" --listeners Protocol="TCP,LoadBalancerPort=4444,InstanceProtocol=TCP,InstancePort=4444" --subnets "$SUBNET_ID" --security-groups "$SECURITY_GROUP" --scheme internet-facing 
-
 
 # get auto Scaling Group name
 export AUTOSCALINGGROUPNAME=$(aws autoscaling describe-auto-scaling-groups | jq '.AutoScalingGroups[] | select (.AutoScalingGroupName | contains ("amazon-ecs-cli-setup-selenium")) | .AutoScalingGroupName' | tr -d "\"") 
@@ -39,9 +34,6 @@ aws autoscaling put-scheduled-update-group-action --auto-scaling-group-name $AUT
 
 # create service with above created task definition & elb
 aws ecs create-service --service-name "ecscompose-service-$CLUSTER_NAME" --cluster "$CLUSTER_NAME" --task-definition "$CLUSTER_NAME" --load-balancers "loadBalancerName=$CLUSTER_NAME,containerName=$HUBCONTAINERNAME,containerPort=4444" --desired-count 1 --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" --role ecsServiceRole
-
-# # allow resources to be creted before searching for them
-# sleep 15 
 
 # export hosted name  ID 
 export HOSTEDZONENAMEID=$(aws elb describe-load-balancers | jq ".LoadBalancerDescriptions[] | select (.LoadBalancerName  == \"$CLUSTER_NAME\") | .CanonicalHostedZoneNameID" | tr -d "\"")
