@@ -1,0 +1,47 @@
+version: "2"
+
+services:
+  hub:
+    image: selenium/hub
+    ports:
+      - 4444:4444
+    environment:
+    - no_proxy=""
+    - GRID_MAX_SESSION=25
+    - GRID_BROWSER_TIMEOUT=100000
+    - GRID_TIMEOUT=90000
+    - GRID_NEW_SESSION_WAIT_TIMEOUT=300000
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: selenium-hub
+        awslogs-region: eu-west-1
+
+    networks:
+    - selenium-grid
+
+  firefox:
+    image: selenium/node-firefox
+    depends_on:
+    - hub
+    links:
+    - hub:hub
+    volumes:
+    - /dev/shm:/dev/shm # Mitigates the Chromium issue described at https://code.google.com/p/chromium/issues/detail?id=519952
+    environment:
+    - no_proxy=""
+    - NODE_MAX_SESSION=2
+    - NODE_MAX_INSTANCES=2
+    - HUB_PORT_4444_TCP_ADDR=hub
+    - HUB_PORT_4444_TCP_PORT=4444
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: selenium-nodes
+        awslogs-region: eu-west-1
+    networks:
+    - selenium-grid
+
+networks:
+  selenium-grid:
+    driver: bridge
