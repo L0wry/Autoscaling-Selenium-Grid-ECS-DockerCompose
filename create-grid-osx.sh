@@ -18,7 +18,7 @@ aws ecs delete-service --cluster $CLUSTER_NAME --service "ecscompose-service-$CL
 ecs-cli configure --region eu-west-1 --cluster $CLUSTER_NAME 
 
 # create ecs cluster of ec2 instances
-ecs-cli up --capability-iam --size $CLUSTER_SIZE --security-group $SECURITY_GROUP --vpc $VPC_ID --subnets $PUBLIC_SUBNET_ID --image-id $AMI_ID --instance-type $INSTANCE_TYPE  --keypair TNLDefault --verbose --force
+ecs-cli up --capability-iam --size $CLUSTER_SIZE --security-group $SECURITY_GROUP --vpc $VPC_ID --subnets $PUBLIC_SUBNET_ID --image-id $AMI_ID --instance-type $INSTANCE_TYPE --verbose --force
 
 # create log groups for cloud watch
 aws logs create-log-group --log-group-name selenium-hub --region eu-west-1
