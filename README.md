@@ -33,11 +33,15 @@ Which is why I created the following repository to spin up the latest selenium t
 
      This will tear down your grid at 8pm, feel free to change the cron job
 
-     I have found this to be most reliable when using a VPC in a PUBLIC subnet with no load balancer. When I introduced a load balancer I was seeing lots of time outs in my UI tests.
+     I have found this to be most reliable when using a VPC in a PUBLIC subnet with no load balancer. 
+     When I introduced a load balancer I was seeing lots of time outs in my UI tests.
 
-    At the time of writing this I am not using autoscaling groups to spin up an instance because I can't assign the machine an elastic IP which I need to have white-listed by my applications under test
+    At the time of writing this I am not using autoscaling groups to spin up an instance. 
+    This is because I can't assign the machine an elastic IP which I need to have white-listed by my applications under test
 
-    I have added another script stop-grid-task.sh to reset the selenium Task. All my UI tests now depend on this to give the grid a clean state and clear up any lost grid sessions before they run. I have found this has been very useful in improving stability.
+    I have added another script stop-grid-task.sh to reset the selenium Task. 
+    All my UI tests now depend on this to give the grid a clean state and clear up any lost grid sessions before they run. 
+    I have found this has been very useful in improving stability.
 
 
 
